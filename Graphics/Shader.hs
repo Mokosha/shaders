@@ -8,14 +8,8 @@ import Control.Monad.State
 import Graphics.Shader.Internal.Expression
 import Graphics.Shader.Internal.Statement
 import Graphics.Shader.Internal.Variable
+import Graphics.Shader.Program
 --------------------------------------------------------------------------------
-
-data ShaderState = ShaderState {
-  nextVarID :: ShaderVarID,
-  stmt :: Statement
-}
-
-type Shader a = State ShaderState a
 
 assign :: Expr a -> Shader (ShaderVar a)
 assign expr = do

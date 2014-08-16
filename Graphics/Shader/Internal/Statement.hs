@@ -1,7 +1,7 @@
 module Graphics.Shader.Internal.Statement (
   Statement,
   addStatement,
-  assignStmt,
+  emptyStmt, assignStmt,
 ) where
 
 --------------------------------------------------------------------------------
@@ -16,6 +16,9 @@ data Statement = StatementList [Statement]
 addStatement :: Statement -> Statement -> Statement
 addStatement stmt (StatementList stmts) = StatementList (stmt : stmts)
 addStatement stmt x = StatementList [stmt, x]
+
+emptyStmt :: Statement
+emptyStmt = StatementList []
 
 assignStmt :: ShaderVar a -> Expr a -> Statement
 assignStmt var expr = Assignment var expr

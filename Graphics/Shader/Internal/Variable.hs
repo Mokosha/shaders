@@ -1,11 +1,20 @@
 module Graphics.Shader.Internal.Variable (
-  ShaderVar, ShaderVarRep,
-  newLocalBool, newLocalFloat
+  ShaderVar, ShaderVarID, ShaderVarRep(..), ShaderVarType(..),
+  newLocal,
 ) where
 
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
+
+data ConstValue = ConstBool !Bool
+                | ConstInt !Int
+                | ConstFloat !Float
+                | ConstDouble !Double
+                | ConstVec2 !ConstValue !ConstValue
+                | ConstVec3 !ConstValue !ConstValue !ConstValue
+                | ConstVec4 !ConstValue !ConstValue !ConstValue !ConstValue
+                deriving (Ord, Eq, Show, Read)
 
 type ShaderVarID = Int
 
@@ -18,7 +27,7 @@ data ShaderVarType = BoolTy
                    | Vec4Ty ShaderVarType
                      deriving (Ord, Eq, Show, Read)
 
-data ShaderVarScope = ConstScope
+data ShaderVarScope = ConstScope ConstValue
                     | LocalScope
                     | AttributeScope
                     | UniformScope
@@ -32,12 +41,14 @@ data ShaderVarRep = ShaderVarRep {
 
 type ShaderVar a = ShaderVarRep
 
-newLocalBool :: ShaderVarID -> (ShaderVar Bool, ShaderVarID)
-newLocalBool varid = (
-  ShaderVarRep { ty = BoolTy, varID = varid, scope = LocalScope },
-  varid + 1)
+newVar :: ShaderVarType -> ShaderVarScope -> ShaderVarID -> ShaderVar a
+newVar varTy varScope varid = ShaderVarRep { ty = varTy, scope = varScope, varID = varid }
 
-newLocalFloat :: ShaderVarID -> (ShaderVar Float, ShaderVarID)
-newLocalFloat varid = (
-  ShaderVarRep { ty = FloatTy, varID = varid, scope = LocalScope },
-  varid + 1)
+newLocal :: ShaderVarType -> ShaderVarID -> ShaderVar a
+newLocal varTy varid = newVar varTy LocalScope varid
+
+newLocalBool :: ShaderVarID -> (ShaderVar Bool)
+newLocalBool varid = newLocal BoolTy varid
+
+newLocalFloat :: ShaderVarID -> (ShaderVar Float)
+newLocalFloat varid = newLocal FloatTy varid

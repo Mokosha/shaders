@@ -1,5 +1,6 @@
 module Graphics.Shader.Internal.Expression (
-  Expr, Expression
+  Expr, Expression,
+  getType
 ) where
 
 --------------------------------------------------------------------------------
@@ -16,6 +17,10 @@ data Expression = VarExpr ShaderVarRep
                 | BinOp Op Expression Expression
 
 type Expr a = Expression
+
+getType :: Expr a -> ShaderVarType
+getType (VarExpr var) = ty var
+getType (BinOp _ e1 _) = getType e1
 
 class Addable a where
   addE :: Expr a -> Expr a -> Expr a

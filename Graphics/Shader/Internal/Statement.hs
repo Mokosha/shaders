@@ -1,11 +1,11 @@
-module Shader.Internal.Statement (
+module Graphics.Shader.Internal.Statement (
 ) where
 
 --------------------------------------------------------------------------------
-import Shader.Internal.Variable
-import Shader.Internal.Expression
+import Graphics.Shader.Internal.Variable
+import Graphics.Shader.Internal.Expression
 
 --------------------------------------------------------------------------------
 
 data Statement = StatementList [Statement]
-               | Assignment Shader
+               | Assignment ShaderVarRep Expression

@@ -1,6 +1,6 @@
 module Graphics.Shader.Program (
   ShaderState(..), Shader,
-  mkVertexShader2_2,
+  mkVertexShader,
 ) where
 
 --------------------------------------------------------------------------------
@@ -19,19 +19,26 @@ data ShaderState = ShaderState {
 type Shader a = State ShaderState a
 
 data ShaderProgram a b = ShaderProgram {
-  inputs :: a,
-  outputs :: b,
+  inputs :: ShaderAttributes a,
+  outputs :: ShaderAttributes b,
   shaderStatements :: Statement
 }
 
+data ShaderAttributes a = ShaderAttributes {
+  numAttributes :: Int,
+  getAttrib :: Int -> ShaderVarRep
+}
+
 type PosType = ShaderVec4 Float
-mkVertexShader2_2 :: ShaderVar a -> ShaderVar b ->
-                     (ShaderVar a -> ShaderVar b -> Shader (ShaderVar PosType, ShaderVar c)) ->
-                     ShaderProgram (ShaderVar a, ShaderVar b) (ShaderVar PosType, ShaderVar c)
-mkVertexShader2_2 attrib1 attrib2 shaderFn = let
-  a1 = attrib1 { varID = 0 }
-  a2 = attrib2 { varID = 1 }
-  shader = shaderFn a1 a2
-  (out, st) = runState shader $ ShaderState { nextVarID = 2, stmt = emptyStmt }
+mkVertexShader :: ShaderAttributes a -> 
+                  (ShaderAttributes a -> Shader (ShaderVar PosType, ShaderAttributes b)) ->
+                  ShaderProgram a b
+mkVertexShader attribs shaderFn = let
+  input = attribs { getAttrib = \idx -> (\sa -> sa { varID = idx }) (getAttrib attribs idx) }
+  shader = shaderFn input
+  ((posVar, out), st) = runState shader $ ShaderState {
+    nextVarID = (numAttributes attribs),
+    stmt = emptyStmt
+  }
   in
-   ShaderProgram { inputs = (a1, a2), outputs = out, shaderStatements = stmt st }
+   ShaderProgram { inputs = input, outputs = out, shaderStatements = stmt st }

@@ -1,6 +1,7 @@
 module Graphics.Shader.Internal.Expression (
   Expr, Expression,
-  getType
+  getType,
+  addE, subtractE, varE,
 ) where
 
 --------------------------------------------------------------------------------
@@ -37,3 +38,6 @@ class Subtractable a where
 instance Subtractable Int
 instance Subtractable Float
 instance Subtractable Double
+
+varE :: ShaderVar a -> Expr a
+varE v = VarExpr v

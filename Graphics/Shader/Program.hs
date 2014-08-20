@@ -1,6 +1,7 @@
 module Graphics.Shader.Program (
   ShaderState(..), Shader,
   mkVertexShader,
+  mkFragmentShader,
 ) where
 
 --------------------------------------------------------------------------------
@@ -29,9 +30,12 @@ data ShaderAttributes a = ShaderAttributes {
   getAttrib :: Int -> ShaderVarRep
 }
 
-type PosType = ShaderVec4 Float
+emptyAttribs :: ShaderAttributes ()
+emptyAttribs = ShaderAttributes { numAttributes = 0, getAttrib = error "No attributes!" }
+
+type Vec4f = ShaderVec4 Float
 mkVertexShader :: ShaderAttributes a -> 
-                  (ShaderAttributes a -> Shader (ShaderVar PosType, ShaderAttributes b)) ->
+                  (ShaderAttributes a -> Shader (ShaderVar Vec4f, ShaderAttributes b)) ->
                   ShaderProgram a b
 mkVertexShader attribs shaderFn = let
   input = attribs { getAttrib = \idx -> (\sa -> sa { varID = idx }) (getAttrib attribs idx) }
@@ -42,3 +46,16 @@ mkVertexShader attribs shaderFn = let
   }
   in
    ShaderProgram { inputs = input, outputs = out, shaderStatements = stmt st }
+
+
+mkFragmentShader :: ShaderAttributes a ->
+                  (ShaderAttributes a -> Shader (ShaderVar Vec4f)) -> ShaderProgram a ()
+mkFragmentShader varyings shaderFn = let
+  input = varyings { getAttrib = \idx -> (\sa -> sa { varID = idx }) (getAttrib varyings idx) }
+  shader = shaderFn input
+  (_, st) = runState shader $ ShaderState {
+    nextVarID = (numAttributes varyings),
+    stmt = emptyStmt
+  }
+  in
+   ShaderProgram { inputs = input, outputs = emptyAttribs, shaderStatements = stmt st }

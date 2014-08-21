@@ -1,5 +1,6 @@
 module Graphics.Shader.Program (
   ShaderState(..), Shader,
+  emptyAttribs, mkShaderAttrib, mkShaderAttrib2,
   mkVertexShader,
   mkFragmentShader,
 ) where
@@ -33,6 +34,20 @@ data ShaderAttributes a = ShaderAttributes {
 emptyAttribs :: ShaderAttributes ()
 emptyAttribs = ShaderAttributes { numAttributes = 0, getAttrib = error "No attributes!" }
 
+mkShaderAttrib :: ShaderVar a -> ShaderAttributes (ShaderVar a)
+mkShaderAttrib var = ShaderAttributes {
+  numAttributes = 1,
+  getAttrib = \_ -> var
+}
+
+mkShaderAttrib2 :: (ShaderVar a, ShaderVar b) -> ShaderAttributes (ShaderVar a, ShaderVar b)
+mkShaderAttrib2 (var1, var2) = ShaderAttributes {
+  numAttributes = 2,
+  getAttrib = fn
+  }
+  where fn 1 = var2
+        fn _ = var1
+
 type Vec4f = ShaderVec4 Float
 mkVertexShader :: ShaderAttributes a -> 
                   (ShaderAttributes a -> Shader (ShaderVar Vec4f, ShaderAttributes b)) ->
@@ -46,7 +61,6 @@ mkVertexShader attribs shaderFn = let
   }
   in
    ShaderProgram { inputs = input, outputs = out, shaderStatements = stmt st }
-
 
 mkFragmentShader :: ShaderAttributes a ->
                   (ShaderAttributes a -> Shader (ShaderVar Vec4f)) -> ShaderProgram a ()
